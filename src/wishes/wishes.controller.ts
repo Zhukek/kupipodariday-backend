@@ -7,7 +7,7 @@ import { UpdateWishDto } from './dto/update-wish.dto';
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
 
-  @Post()
+  /* @Post()
   create(@Body() createWishDto: CreateWishDto) {
     return this.wishesService.create(createWishDto);
   }
@@ -30,5 +30,5 @@ export class WishesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.wishesService.remove(+id);
-  }
+  } */
 }
