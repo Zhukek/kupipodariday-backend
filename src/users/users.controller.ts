@@ -1,19 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, NotFoundException, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { JwtGuard } from 'src/auth/guards/jwtGuard';
+import { UserPasswordInterceptor } from 'src/interceptors/userPassword';
+import { UserEmailInterceptor } from 'src/interceptors/userEmail';
+import { Wish } from 'src/wishes/entities/wish.entity';
+import { WishOwnerInterceptor } from 'src/interceptors/wishOwner';
 
 @Controller('users')
 @UseGuards(JwtGuard)
+@UseInterceptors(UserPasswordInterceptor)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Get()
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
-  }
 
   @Get('me')
   async getMe(@Req() req: {user: User}): Promise<User> {
@@ -27,6 +26,7 @@ export class UsersController {
   }
 
   @Get(':name')
+  @UseInterceptors(UserEmailInterceptor)
   async findbyName(@Param('name') name: string): Promise<User> {
     const user = await this.usersService.findByName(name)
 
@@ -56,18 +56,21 @@ export class UsersController {
     return this.usersService.findMany(body.query)
   }
 
-  /* @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get('me/wishes')
+  @UseInterceptors(WishOwnerInterceptor)
+  async getMyWishes(@Req() req: {user: User}): Promise<Wish[]> {
+    return this.usersService.getWishesByUserName(req.user.username)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
+  @Get(':username/wishes')
+  @UseInterceptors(WishOwnerInterceptor)
+  async getUserWishes(@Param('username') username: string): Promise<Wish[]> {
+    const user = await this.usersService.findByName(username)
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  } */
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return this.usersService.getWishesByUserName(username)
+  }
 }

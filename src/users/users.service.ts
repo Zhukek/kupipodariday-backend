@@ -25,10 +25,6 @@ export class UsersService {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find();
-  }
-
   async findMany(str: string): Promise<User[]> {
     return this.userRepository.find({
       where: [{username: Like(`%${str}%`)}, {email: Like(`%${str}%`)}]
@@ -52,8 +48,6 @@ export class UsersService {
 
     if (dto.username && dto.username !== user.username) {
       const anotherUser =  await this.findByName(dto.username)
-      console.log(anotherUser)
-      console.log(user)
 
       if (dto?.username === anotherUser?.username) {
         throw new BadRequestException(usernameAlreadyExistsError)
