@@ -11,7 +11,7 @@ export class Offer extends Content {
     user: User;
 
     @ManyToOne(() => Wish, (wish) => wish.offers)
-    item: Wish[];
+    item: Wish;
 
     @Column({
         type: 'numeric',
