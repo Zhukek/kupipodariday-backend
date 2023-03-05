@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseInterceptors,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { JwtGuard } from 'src/auth/guards/jwtGuard';
 import { User } from 'src/users/entities/user.entity';
+import { OfferInterceptor } from 'src/interceptors/offer';
+import { Offer } from './entities/offer.entity';
 
 @Controller('offers')
 export class OffersController {
@@ -10,32 +21,24 @@ export class OffersController {
 
   @Post()
   @UseGuards(JwtGuard)
-  async create(@Body() createOfferDto: CreateOfferDto, @Req() req: {user: User}): Promise<{}> {
+  async create(
+    @Body() createOfferDto: CreateOfferDto,
+    @Req() req: { user: User },
+  ): Promise<Record<string, never>> {
     return this.offersService.create(createOfferDto, req.user);
   }
 
-  /* @Post()
-  create(@Body() createOfferDto: CreateOfferDto) {
-    return this.offersService.create(createOfferDto);
-  }
-
   @Get()
-  findAll() {
+  @UseGuards(JwtGuard)
+  @UseInterceptors(OfferInterceptor)
+  findAll(): Promise<Offer[]> {
     return this.offersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @UseGuards(JwtGuard)
+  @UseInterceptors(OfferInterceptor)
+  findOne(@Param('id') id: string): Promise<Offer> {
     return this.offersService.findOne(+id);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOfferDto: UpdateOfferDto) {
-    return this.offersService.update(+id, updateOfferDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.offersService.remove(+id);
-  } */
 }

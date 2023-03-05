@@ -1,14 +1,14 @@
 const appConfig = process.env;
 
 const configProvider = {
-    provide: 'CONFIG',
-    useFactory: () => {
-        const options = {
-            saltLength: appConfig.SALT_LENGTH  ?? 10
-        }
+  provide: 'CONFIG',
+  useFactory: () => {
+    const options = {
+      saltLength: appConfig.SALT_LENGTH ?? 10,
+    };
 
-        return options
-    }
-}
+    return options;
+  },
+};
 
-export {configProvider}
+export { configProvider };

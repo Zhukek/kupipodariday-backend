@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { WishesService } from 'src/wishes/wishes.service';
@@ -8,43 +8,43 @@ import { Offer } from './entities/offer.entity';
 
 @Injectable()
 export class OffersService {
-  constructor (
+  constructor(
     @InjectRepository(Offer)
     private readonly offerRepository: Repository<Offer>,
-    private readonly wishesServise: WishesService
+    private readonly wishesServise: WishesService,
   ) {}
 
   async create(dto: CreateOfferDto, user: User) {
+    const wish = await this.wishesServise.raisedUpdate(
+      dto.itemId,
+      dto.amount,
+      user,
+    );
 
-    const wish = await this.wishesServise.raisedUpdate(dto.itemId, dto.amount, user);
-
-    console.log(wish)
-
-    const offer = await this.offerRepository.create({
+    this.offerRepository.save({
       user: user,
       item: wish,
-      ...dto
-    })
-
-    this.offerRepository.save(offer)
-    return {}
+      ...dto,
+    });
+    return {};
   }
 
-  /* 
-
-  findAll() {
-    return `This action returns all offers`;
+  async findAll(): Promise<Offer[]> {
+    return await this.offerRepository.find({
+      relations: ['item', 'user', 'item.owner'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} offer`;
-  }
+  async findOne(id: number): Promise<Offer> {
+    const offer = await this.offerRepository.findOne({
+      where: { id: id },
+      relations: ['item', 'user', 'item.owner'],
+    });
 
-  update(id: number, updateOfferDto: UpdateOfferDto) {
-    return `This action updates a #${id} offer`;
-  }
+    if (!offer) {
+      throw new NotFoundException();
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} offer`;
-  } */
+    return offer;
+  }
 }
