@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { Controller } from '@nestjs/common';
-
-@Controller()
-export class AppController {}
-=======
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
@@ -16,4 +10,3 @@ export class AppController {
     return this.appService.getHello();
   }
 }
->>>>>>> dev
