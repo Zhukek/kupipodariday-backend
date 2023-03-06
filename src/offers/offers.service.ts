@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { overPriceError, ownerPaymentError } from 'src/utils/errors';
 import { WishesService } from 'src/wishes/wishes.service';
 import { Repository } from 'typeorm';
 import { CreateOfferDto } from './dto/create-offer.dto';
@@ -15,15 +20,27 @@ export class OffersService {
   ) {}
 
   async create(dto: CreateOfferDto, user: User) {
-    const wish = await this.wishesServise.raisedUpdate(
-      dto.itemId,
-      dto.amount,
-      user,
-    );
+    const wish = await this.wishesServise.findById(dto.itemId);
+
+    if (!wish) {
+      throw new NotFoundException();
+    }
+
+    if (wish.owner.id === user.id) {
+      throw new BadRequestException(ownerPaymentError);
+    }
+
+    const countRaised = Number(wish.raised) + Number(dto.amount);
+
+    if (countRaised > wish.price) {
+      throw new BadRequestException(overPriceError);
+    }
+
+    const wishUpd = await this.wishesServise.raisedUpdate(wish.id, countRaised);
 
     this.offerRepository.save({
       user: user,
-      item: wish,
+      item: wishUpd,
       ...dto,
     });
     return {};

@@ -6,11 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import {
-  alreadyRaisedError,
-  overPriceError,
-  ownerPaymentError,
-} from 'src/utils/errors';
+import { alreadyCopiredError, alreadyRaisedError } from 'src/utils/errors';
 import { Repository } from 'typeorm';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
@@ -132,10 +128,15 @@ export class WishesService {
   async copy(id: number, user: User): Promise<Record<string, never>> {
     const wish = await this.wishRepository.findOne({
       where: { id: id },
+      relations: ['owner'],
     });
 
     if (!wish) {
       throw new NotFoundException();
+    }
+
+    if (wish.owner.id === user.id) {
+      throw new BadRequestException(alreadyCopiredError);
     }
 
     await this.wishRepository.update(id, { copied: (wish.copied += 1) });
@@ -157,28 +158,12 @@ export class WishesService {
     return {};
   }
 
-  async raisedUpdate(id: number, amount: number, user: User): Promise<Wish> {
-    const wish = await this.wishRepository.findOne({
+  async raisedUpdate(id: number, countRaised: number): Promise<Wish> {
+    await this.wishRepository.update(id, { raised: countRaised });
+
+    return this.wishRepository.findOne({
       where: { id: id },
       relations: ['owner'],
     });
-
-    if (!wish) {
-      throw new NotFoundException();
-    }
-
-    if (wish.owner.id === user.id) {
-      throw new BadRequestException(ownerPaymentError);
-    }
-
-    const countRaised = Number(wish.raised) + Number(amount);
-
-    if (countRaised > wish.price) {
-      throw new BadRequestException(overPriceError);
-    }
-
-    await this.wishRepository.update(id, { raised: countRaised });
-
-    return wish;
   }
 }

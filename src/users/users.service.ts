@@ -26,6 +26,16 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
+    const userByEmail = await this.findByEmail(dto.email);
+    if (userByEmail) {
+      throw new BadRequestException(emailAlreadyExistsError);
+    }
+
+    const userByUsername = await this.findByName(dto.username);
+    if (userByUsername) {
+      throw new BadRequestException(usernameAlreadyExistsError);
+    }
+
     return this.userRepository.save({
       ...dto,
       password: await this.hashService.hash(dto.password),
