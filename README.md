@@ -61,9 +61,8 @@ npm run start:dev
 
 ## <a id="author" />Автор
 
-Андрей Колосов 2023г
+Иван Жук 2023г
 
-- [Telegram ](https://t.me/RustyVoid)
-- [Instagram](https://www.instagram.com/akolosof/)
+- [Telegram ](https://t.me/ZhuIvan)
 
 [Наверх](#top)
